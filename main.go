@@ -32,7 +32,7 @@ func main() {
 
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/signup", signupHandler)
-	http.HandleFunc("/home", defaultHandler)
+	http.HandleFunc("/home", homeHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -46,17 +46,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	r.ParseForm()
 
-	// Get a session. Get() always returns a session, even if empty.
-	session, err := store.Get(r, "user")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	user := db.GetUser(r.Form.Get("username"))
 	if user == nil { //couldn't find user with that username
 		log.Printf("could not find user %v", r.Form.Get("username"))
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "not a user", http.StatusInternalServerError)
 		return
 	}
 
@@ -64,6 +57,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		log.Printf("invalid password for %v", r.Form.Get("username"))
 		http.Error(w, "invalid password", http.StatusInternalServerError)
+		return
+	}
+
+	// Get a session. Get() always returns a session, even if empty.
+	session, err := store.Get(r, "session")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -110,15 +110,18 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("signup successful"))
 }
 
-// defaultHandler returns the main json data which will be used to render the main page
-func defaultHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "user")
+// homeHandler returns the main json data which will be used to render the main page
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "session")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if session.Values["UserID"] != 1234 {
-		http.Redirect(w, r, "http://localhost:8080/login", http.StatusTemporaryRedirect)
+
+	_, ok := session.Values["UserID"]
+	if !ok {
+		log.Print("session not valid")
+		http.Error(w, "invalid session", http.StatusUnauthorized)
 		return
 	}
 
