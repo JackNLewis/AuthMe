@@ -1,10 +1,10 @@
 # Introduction
 A simple authentication API which connects to a MySQL database to store sessions.
 
-# How to run localy 
+### How to run localy 
 
-# Endpoints
+### Endpoints
 
-# Performance testing 
+### Performance testing 
 TODO
 
