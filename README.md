@@ -1,5 +1,5 @@
 # Introduction
-A simple authentication API which connects to a MySQL database to store sessions.
+A simple authentication API which uses cookie-based session management and connects to a MySQL database
 
 ### How to run localy 
 
